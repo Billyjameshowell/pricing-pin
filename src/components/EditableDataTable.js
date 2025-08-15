@@ -74,19 +74,63 @@ const EditableDataTable = ({ data, onExport, onDataUpdate, starredPropertyId, on
         newRow[key] = 'NO';
       } else if (key === 'Worth Comparison') {
         newRow[key] = 'Not Set';
+      } else if (key === 'Status') {
+        newRow[key] = 'ACT';
       } else {
         newRow[key] = '';
       }
     });
     
-    const updatedData = [newRow, ...localData];
-    setLocalData(updatedData);
-    if (onDataUpdate) {
-      onDataUpdate(updatedData);
+    // Add a prompt for the address
+    const address = prompt('Enter the property address:');
+    if (address) {
+      newRow['Address'] = address;
+      
+      // Generate Zillow link for the address
+      const city = prompt('Enter the city (for Zillow link):');
+      if (city) {
+        const cleanAddress = address
+          .replace(/[^\w\s]/g, '') // Remove special characters except spaces
+          .replace(/\s+/g, '-') // Replace spaces with hyphens
+          .toLowerCase();
+        
+        const cleanCity = city
+          .replace(/[^\w\s]/g, '')
+          .replace(/\s+/g, '-')
+          .toLowerCase();
+        
+        newRow['Zillow Link'] = `https://www.zillow.com/homes/${cleanAddress}-${cleanCity}-MD`;
+      }
+      
+      // Prompt for List Price and Above Grade Finished SQFT
+      const listPriceStr = prompt('Enter the List Price:');
+      if (listPriceStr) {
+        const listPrice = parseFloat(listPriceStr.replace(/[^0-9.]/g, ''));
+        if (!isNaN(listPrice)) {
+          newRow['List Price'] = listPrice;
+          
+          const sqftStr = prompt('Enter the Above Grade Finished SQFT:');
+          if (sqftStr) {
+            const sqft = parseFloat(sqftStr.replace(/[^0-9.]/g, ''));
+            if (!isNaN(sqft) && sqft > 0) {
+              newRow['Above Grade Finished SQFT'] = sqft;
+              
+              // Calculate Price/SqFt
+              newRow['Price/SqFt'] = listPrice / sqft;
+            }
+          }
+        }
+      }
+      
+      const updatedData = [newRow, ...localData];
+      setLocalData(updatedData);
+      if (onDataUpdate) {
+        onDataUpdate(updatedData);
+      }
+      
+      // Reset to first page to show the new row
+      setCurrentPage(1);
     }
-    
-    // Reset to first page to show the new row
-    setCurrentPage(1);
   };
 
   // Update local data when props change
@@ -813,6 +857,8 @@ const EditableDataTable = ({ data, onExport, onDataUpdate, starredPropertyId, on
             return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
           case 'PND':
             return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200';
+          case 'CS':
+            return 'bg-pink-100 text-pink-800 hover:bg-pink-200';
           default:
             return 'bg-gray-100 text-gray-600 hover:bg-gray-200';
         }
@@ -827,6 +873,8 @@ const EditableDataTable = ({ data, onExport, onDataUpdate, starredPropertyId, on
           case 'ACT':
             return 'PND';
           case 'PND':
+            return 'CS';
+          case 'CS':
             return 'EXP';
           default:
             return 'EXP';
@@ -1082,7 +1130,7 @@ const EditableDataTable = ({ data, onExport, onDataUpdate, starredPropertyId, on
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Exclude Status
               </label>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-32 overflow-y-auto">
                 {uniqueStatuses.map(status => (
                   <label key={status} className="flex items-center">
                     <input
@@ -1309,7 +1357,7 @@ const EditableDataTable = ({ data, onExport, onDataUpdate, starredPropertyId, on
       {/* Column Management Modal */}
       {showColumnManager && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[80vh] overflow-hidden">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h3 className="text-lg font-medium text-gray-900">Column Management</h3>
               <button
@@ -1321,22 +1369,24 @@ const EditableDataTable = ({ data, onExport, onDataUpdate, starredPropertyId, on
             </div>
             
             <div className="p-6 overflow-y-auto max-h-[60vh]">
-              <div className="flex gap-2 mb-4">
-                <button
-                  onClick={handleShowAllColumns}
-                  className="btn-secondary text-sm"
-                >
-                  Show All
-                </button>
-                <button
-                  onClick={handleHideAllColumns}
-                  className="btn-secondary text-sm"
-                >
-                  Hide All
-                </button>
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleShowAllColumns}
+                    className="btn-secondary text-sm"
+                  >
+                    Show All
+                  </button>
+                  <button
+                    onClick={handleHideAllColumns}
+                    className="btn-secondary text-sm"
+                  >
+                    Hide All
+                  </button>
+                </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {allColumns.map(column => (
                   <div
                     key={column}
@@ -1471,4 +1521,4 @@ const EditableDataTable = ({ data, onExport, onDataUpdate, starredPropertyId, on
   );
 };
 
-export default EditableDataTable; 
+export default EditableDataTable;
