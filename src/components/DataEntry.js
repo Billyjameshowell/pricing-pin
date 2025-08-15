@@ -304,14 +304,14 @@ const DataEntry = ({ data, onDataUpdate }) => {
                           <iframe
                             src={selectedProperty['Zillow Link']}
                             title="Zillow Property Preview"
-                            className="w-full h-[600px]"
+                            className="w-full h-[1800px]"
                             frameBorder="0"
                             sandbox="allow-scripts allow-same-origin allow-forms"
                             onLoad={() => setIframeLoaded(true)}
                             onError={() => setIframeError(true)}
                           />
                         ) : (
-                          <div className="h-[600px] bg-gray-50 flex items-center justify-center">
+                          <div className="h-[1800px] bg-gray-50 flex items-center justify-center">
                             <div className="text-center p-6">
                               <ExternalLink className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                               <p className="text-gray-600 mb-4">Zillow preview not available</p>
@@ -744,4 +744,4 @@ const DataEntry = ({ data, onDataUpdate }) => {
   );
 };
 
-export default DataEntry; 
+export default DataEntry;
