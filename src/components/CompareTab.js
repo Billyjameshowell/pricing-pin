@@ -95,6 +95,13 @@ const CompareTab = ({ comps = [], referenceProperty, onDataUpdate, starredProper
       }).format(value);
     }
     
+    if (key === 'Above Grade Finished SQFT' && typeof value === 'number') {
+      return new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(value);
+    }
+    
     if (key.includes('SQFT') && typeof value === 'number') {
       return new Intl.NumberFormat('en-US').format(value);
     }
@@ -313,7 +320,7 @@ const CompareTab = ({ comps = [], referenceProperty, onDataUpdate, starredProper
                       <iframe
                         src={referenceProperty['Zillow Link']}
                         title="Reference Property Zillow"
-                        className="w-full h-64"
+                        className="w-full h-96"
                         frameBorder="0"
                         sandbox="allow-scripts allow-same-origin allow-forms"
                       />
@@ -348,7 +355,7 @@ const CompareTab = ({ comps = [], referenceProperty, onDataUpdate, starredProper
                       <iframe
                         src={selectedComp['Zillow Link']}
                         title="Selected Property Zillow"
-                        className="w-full h-64"
+                        className="w-full h-96"
                         frameBorder="0"
                         sandbox="allow-scripts allow-same-origin allow-forms"
                       />
@@ -383,18 +390,101 @@ const CompareTab = ({ comps = [], referenceProperty, onDataUpdate, starredProper
                           ? compValue - sellerValue 
                           : null;
                         
+                        // Special handling for Rating field
+                        if (field.key === 'Rating') {
+                          return (
+                            <tr key={field.key} className="hover:bg-gray-50">
+                              <td className="px-4 py-3 text-base font-medium text-gray-900">{field.label}</td>
+                              <td className="px-4 py-3 text-base text-gray-700">{formatValue(sellerValue, field.key)}</td>
+                              <td className="px-4 py-3 text-base text-gray-700">
+                                <div className="flex items-center">
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <button
+                                      key={star}
+                                      type="button"
+                                      onClick={() => {
+                                        const updatedComps = comps.map(comp => {
+                                          if (comp['MLS #'] === selectedComp['MLS #']) {
+                                            return {
+                                              ...comp,
+                                              'Rating': star
+                                            };
+                                          }
+                                          return comp;
+                                        });
+                                        
+                                        // Find the reference property and add it back to the data
+                                        const updatedData = updatedComps.concat([referenceProperty]);
+                                        onDataUpdate(updatedData);
+                                      }}
+                                      className={`w-6 h-6 ${
+                                        star <= compValue ? 'text-yellow-500' : 'text-gray-300'
+                                      }`}
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                        <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clipRule="evenodd" />
+                                      </svg>
+                                    </button>
+                                  ))}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-base">-</td>
+                            </tr>
+                          );
+                        }
+                        
+                        // Special handling for Good Comp field
+                        if (field.key === 'Good Comp') {
+                          return (
+                            <tr key={field.key} className="hover:bg-gray-50">
+                              <td className="px-4 py-3 text-base font-medium text-gray-900">{field.label}</td>
+                              <td className="px-4 py-3 text-base text-gray-700">{formatValue(sellerValue, field.key)}</td>
+                              <td className="px-4 py-3 text-base text-gray-700">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newValue = compValue === 'YES' ? 'NO' : 'YES';
+                                    const updatedComps = comps.map(comp => {
+                                      if (comp['MLS #'] === selectedComp['MLS #']) {
+                                        return {
+                                          ...comp,
+                                          'Good Comp': newValue
+                                        };
+                                      }
+                                      return comp;
+                                    });
+                                    
+                                    // Find the reference property and add it back to the data
+                                    const updatedData = updatedComps.concat([referenceProperty]);
+                                    onDataUpdate(updatedData);
+                                  }}
+                                  className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                    compValue === 'YES' 
+                                      ? 'bg-green-100 text-green-800 hover:bg-green-200' 
+                                      : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                                  }`}
+                                >
+                                  {compValue}
+                                </button>
+                              </td>
+                              <td className="px-4 py-3 text-base">-</td>
+                            </tr>
+                          );
+                        }
+                        
+                        // Default handling for other fields
                         return (
                           <tr key={field.key} className="hover:bg-gray-50">
                             <td className="px-4 py-3 text-base font-medium text-gray-900">{field.label}</td>
                             <td className="px-4 py-3 text-base text-gray-700">{formatValue(sellerValue, field.key)}</td>
                             <td className="px-4 py-3 text-base text-gray-700">{formatValue(compValue, field.key)}</td>
-                                                          <td className="px-4 py-3 text-base">
-                                {difference !== null ? (
-                                  <span className={`font-medium ${difference > 0 ? 'text-green-600' : difference < 0 ? 'text-red-600' : 'text-gray-600'}`}>
-                                    {difference > 0 ? '+' : ''}{formatValue(difference, field.key)}
-                                  </span>
-                                ) : '-'}
-                              </td>
+                            <td className="px-4 py-3 text-base">
+                              {difference !== null ? (
+                                <span className={`font-medium ${difference > 0 ? 'text-green-600' : difference < 0 ? 'text-red-600' : 'text-gray-600'}`}>
+                                  {difference > 0 ? '+' : ''}{formatValue(difference, field.key)}
+                                </span>
+                              ) : '-'}
+                            </td>
                           </tr>
                         );
                       })}
@@ -460,4 +550,4 @@ const CompareTab = ({ comps = [], referenceProperty, onDataUpdate, starredProper
   );
 };
 
-export default CompareTab; 
+export default CompareTab;
