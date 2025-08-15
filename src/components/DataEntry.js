@@ -299,19 +299,21 @@ const DataEntry = ({ data, onDataUpdate }) => {
                           </a>
                         </div>
                       </div>
-                      <div className="relative">
-                        {!iframeError ? (
-                          <iframe
-                            src={selectedProperty['Zillow Link']}
-                            title="Zillow Property Preview"
-                            className="w-full h-[1800px]"
-                            frameBorder="0"
-                            sandbox="allow-scripts allow-same-origin allow-forms"
-                            onLoad={() => setIframeLoaded(true)}
-                            onError={() => setIframeError(true)}
-                          />
-                        ) : (
-                          <div className="h-[1800px] bg-gray-50 flex items-center justify-center">
+                      <div className="relative w-full overflow-hidden">
+                        <div className="responsive-iframe-container w-full" style={{ position: 'relative', paddingTop: '150%' }}>
+                          {!iframeError ? (
+                            <iframe
+                              src={selectedProperty['Zillow Link']}
+                              title="Zillow Property Preview"
+                              className="absolute top-0 left-0 w-full h-full"
+                              frameBorder="0"
+                              sandbox="allow-scripts allow-same-origin allow-forms"
+                              onLoad={() => setIframeLoaded(true)}
+                              onError={() => setIframeError(true)}
+                              style={{ minHeight: '100%' }}
+                            />
+                          ) : (
+                            <div className="absolute top-0 left-0 w-full h-full bg-gray-50 flex items-center justify-center">
                             <div className="text-center p-6">
                               <ExternalLink className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                               <p className="text-gray-600 mb-4">Zillow preview not available</p>
